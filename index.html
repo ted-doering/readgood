@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body { font-family: 'Montserrat', system-ui, sans-serif; background: #f4f1e8; color: #262521; -webkit-font-smoothing: antialiased; }
+  ::selection { background: rgba(17,82,27,0.18); }
+  .silm-scroll::-webkit-scrollbar { width: 10px; }
+  .silm-scroll::-webkit-scrollbar-thumb { background: #d8d3c2; border-radius: 8px; border: 3px solid #f4f1e8; }
+  .silm-scroll::-webkit-scrollbar-track { background: transparent; }
+  .silm-note::placeholder { color: #a8a493; }
+  .silm-search::placeholder { color: #7fae86; }
+</style>
+</helmet>
+<div style="display:flex; height:100vh; width:100%; overflow:hidden; background:#f4f1e8;">
+
+  <aside style="width:340px; flex:0 0 340px; height:100%; display:flex; flex-direction:column; background:#11521b; color:#eef2e9; border-right:1px solid #0c3c14;">
+    <div style="padding:28px 28px 20px 28px; border-bottom:1px solid rgba(255,255,255,0.10);">
+      <div style="font-size:11px; letter-spacing:0.28em; text-transform:uppercase; font-weight:600; color:#9cc4a1; margin-bottom:11px;">A Book Club Companion</div>
+      <div style="font-size:26px; font-weight:800; line-height:1.12; letter-spacing:-0.01em;">The Silmarillion</div>
+    </div>
+
+    <div style="padding:16px 28px 14px 28px; border-bottom:1px solid rgba(255,255,255,0.10);">
+      <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:9px;">
+        <span style="font-size:11px; letter-spacing:0.16em; text-transform:uppercase; font-weight:600; color:#9cc4a1;">Your Progress</span>
+        <span style="font-size:12px; font-weight:600; color:#eef2e9;">{{ progressLabel }}</span>
+      </div>
+      <div style="height:7px; background:rgba(255,255,255,0.14); border-radius:99px; overflow:hidden;">
+        <div style="height:100%; width:{{ progressPct }}%; background:linear-gradient(90deg,#7dc088,#a9d8ae); border-radius:99px; transition:width 0.35s ease;"></div>
+      </div>
+    </div>
+
+    <div style="padding:14px 20px; border-bottom:1px solid rgba(255,255,255,0.10);">
+      <button onClick="{{ openTrackers }}" style="{{ logsBtnStyle }}" style-hover="background:rgba(255,255,255,0.14);">
+        <span style="font-size:16px; line-height:1; color:#a9d8ae;">&#9998;</span>
+        <span style="display:flex; flex-direction:column; gap:1px; text-align:left;">
+          <span style="font-size:13.5px; font-weight:700;">Running Logs</span>
+          <span style="font-size:10.5px; font-weight:500; color:#9cc4a1;">Track the light, the Silmarils &amp; more</span>
+        </span>
+      </button>
+    </div>
+
+    <div style="padding:16px 28px 14px 28px; border-bottom:1px solid rgba(255,255,255,0.10);">
+      <div style="font-size:11px; letter-spacing:0.16em; text-transform:uppercase; font-weight:600; color:#9cc4a1; margin-bottom:11px;">Reference</div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <a href="https://www.theonering.com/maps-of-middle-earth/" target="_blank" rel="noopener" style="display:flex; align-items:center; gap:10px; text-decoration:none; font-size:13.5px; font-weight:600; color:#eef2e9; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); border-radius:9px; padding:11px 14px;" style-hover="background:rgba(255,255,255,0.14);">
+          <span style="font-size:15px; line-height:1; color:#a9d8ae;">&#9906;</span>Maps
+        </a>
+        <a href="https://monarchycharts.com/middle-earth" target="_blank" rel="noopener" style="display:flex; align-items:center; gap:10px; text-decoration:none; font-size:13.5px; font-weight:600; color:#eef2e9; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); border-radius:9px; padding:11px 14px;" style-hover="background:rgba(255,255,255,0.14);">
+          <span style="font-size:15px; line-height:1; color:#a9d8ae;">&#9860;</span>Family Trees
+        </a>
+      </div>
+    </div>
+
+    <div style="padding:14px 20px 8px 20px;">
+      <div style="display:flex; align-items:center; gap:9px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14); border-radius:9px; padding:0 12px;">
+        <span style="font-size:14px; color:#7fae86; line-height:1;">&#9906;</span>
+        <input class="silm-search" value="{{ query }}" onChange="{{ onSearch }}" placeholder="Search chapters &amp; tales…" style="flex:1; min-width:0; background:transparent; border:none; outline:none; color:#eef2e9; font-family:inherit; font-size:13.5px; font-weight:500; padding:10px 0;">
+        <sc-if value="{{ hasQuery }}">
+          <button onClick="{{ clearSearch }}" style="background:none; border:none; color:#9cc4a1; cursor:pointer; font-size:16px; line-height:1; padding:2px;">&#215;</button>
+        </sc-if>
+      </div>
+    </div>
+
+    <nav class="silm-scroll" style="flex:1; overflow-y:auto; padding:4px 16px 24px 16px;">
+      <sc-for list="{{ groups }}" as="group" hint-placeholder-count="5">
+        <div style="margin-top:14px;">
+          <div style="font-size:10.5px; letter-spacing:0.2em; text-transform:uppercase; font-weight:700; color:#7fae86; padding:6px 12px 8px 12px;">{{ group.title }}</div>
+          <sc-for list="{{ group.entries }}" as="entry" hint-placeholder-count="3">
+            <button onClick="{{ entry.onSelect }}" style="{{ entry.rowStyle }}" style-hover="background:rgba(255,255,255,0.09);">
+              <span style="{{ entry.checkStyle }}">{{ entry.check }}</span>
+              <span style="display:flex; flex-direction:column; gap:2px; text-align:left; min-width:0;">
+                <span style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase; font-weight:600; color:{{ entry.labelColor }};">{{ entry.label }}</span>
+                <span style="font-size:13px; font-weight:500; line-height:1.3; color:{{ entry.titleColor }};">{{ entry.title }}</span>
+              </span>
+            </button>
+          </sc-for>
+        </div>
+      </sc-for>
+      <sc-if value="{{ noResults }}">
+        <div style="padding:22px 14px; text-align:center; font-size:13px; color:#9cc4a1;">No chapters match "{{ query }}".</div>
+      </sc-if>
+    </nav>
+
+    <div style="padding:14px 20px; border-top:1px solid rgba(255,255,255,0.10); display:flex; gap:9px;">
+      <button onClick="{{ onExport }}" style="flex:1; display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer; font-family:inherit; font-size:12px; font-weight:600; letter-spacing:0.03em; color:#eef2e9; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.14); border-radius:9px; padding:10px;" style-hover="background:rgba(255,255,255,0.14);">
+        <span style="font-size:13px; line-height:1; color:#a9d8ae;">&#8681;</span>Export
+      </button>
+      <button onClick="{{ onImportClick }}" style="flex:1; display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer; font-family:inherit; font-size:12px; font-weight:600; letter-spacing:0.03em; color:#eef2e9; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.14); border-radius:9px; padding:10px;" style-hover="background:rgba(255,255,255,0.14);">
+        <span style="font-size:13px; line-height:1; color:#a9d8ae;">&#8679;</span>Import
+      </button>
+      <input id="silm-import-input" type="file" accept="application/json,.json" onChange="{{ onImportFile }}" style="display:none;">
+    </div>
+  </aside>
+
+  <main class="silm-scroll" style="flex:1; height:100%; overflow-y:auto;">
+    <div style="max-width:760px; margin:0 auto; padding:56px 56px 120px 56px;">
+
+      <sc-if value="{{ isChapterView }}">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:24px; margin-bottom:36px; padding-bottom:26px; border-bottom:1.5px solid #e0dbcb;">
+          <div style="min-width:0;">
+            <div style="font-size:12px; letter-spacing:0.22em; text-transform:uppercase; font-weight:700; color:#11521b; margin-bottom:12px;">{{ current.label }}</div>
+            <h1 style="font-size:34px; font-weight:800; line-height:1.14; letter-spacing:-0.015em; margin:0; color:#1c1b16;">{{ current.title }}</h1>
+          </div>
+          <button onClick="{{ toggleRead }}" style="{{ readBtnStyle }}" style-hover="filter:brightness(0.96);">{{ readBtnLabel }}</button>
+        </div>
+
+        <sc-for list="{{ current.blocks }}" as="block" hint-placeholder-count="4">
+          <section style="margin-bottom:34px;">
+            <sc-if value="{{ block.h }}">
+              <h2 style="font-size:12px; letter-spacing:0.16em; text-transform:uppercase; font-weight:700; color:#7a8a6f; margin:0 0 14px 0;">{{ block.h }}</h2>
+            </sc-if>
+
+            <sc-if value="{{ block.isProse }}">
+              <p style="font-size:16.5px; line-height:1.72; margin:0; color:#37362e; text-wrap:pretty;">{{ block.body }}</p>
+            </sc-if>
+
+            <sc-if value="{{ block.isLink }}">
+              <div>
+                <sc-if value="{{ block.body }}">
+                  <p style="font-size:16.5px; line-height:1.72; margin:0 0 16px 0; color:#37362e; text-wrap:pretty;">{{ block.body }}</p>
+                </sc-if>
+                <a href="{{ block.href }}" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; gap:9px; text-decoration:none; font-size:13.5px; font-weight:700; letter-spacing:0.03em; color:#fff; background:#11521b; border:1.5px solid #11521b; padding:12px 22px; border-radius:99px;" style-hover="filter:brightness(0.94);">
+                  <span style="font-size:15px; line-height:1;">&#9906;</span>{{ block.label }}
+                </a>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ block.isList }}">
+              <ul style="list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:11px;">
+                <sc-for list="{{ block.listItems }}" as="item" hint-placeholder-count="3">
+                  <li style="display:flex; gap:12px; align-items:baseline; font-size:15.5px; line-height:1.62; color:#37362e;">
+                    <span style="flex:0 0 auto; color:#11521b; font-weight:700; min-width:16px;">{{ item.marker }}</span>
+                    <span style="text-wrap:pretty;"><strong style="font-weight:700; color:#1c1b16;">{{ item.lead }}</strong>{{ item.text }}</span>
+                  </li>
+                </sc-for>
+              </ul>
+            </sc-if>
+
+            <sc-if value="{{ block.isQuestions }}">
+              <div style="display:flex; flex-direction:column; gap:16px;">
+                <sc-for list="{{ block.questions }}" as="q" hint-placeholder-count="3">
+                  <div style="background:#fbfaf5; border:1px solid #e6e1d1; border-left:3px solid #11521b; border-radius:10px; padding:16px 18px;">
+                    <div style="display:flex; gap:16px; align-items:flex-start;">
+                      <span style="flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:#11521b; color:#fff; font-size:12.5px; font-weight:700; display:flex; align-items:center; justify-content:center; margin-top:1px;">{{ q.n }}</span>
+                      <p style="margin:0; font-size:15px; line-height:1.62; color:#33322b; text-wrap:pretty;">{{ q.text }}</p>
+                    </div>
+                    <textarea class="silm-note" value="{{ q.answer }}" onChange="{{ q.onAnswer }}" placeholder="Write your response…" style="width:100%; min-height:76px; resize:vertical; margin-top:14px; font-family:'Montserrat',sans-serif; font-size:14.5px; line-height:1.6; color:#33322b; background:#ffffff; border:1px solid #e0dbc9; border-radius:9px; padding:12px 14px; outline:none;" style-focus="border-color:#11521b; box-shadow:0 0 0 3px rgba(17,82,27,0.12);"></textarea>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </section>
+        </sc-for>
+
+        <div style="margin-top:48px; padding-top:30px; border-top:1.5px solid #e0dbcb;">
+          <h2 style="font-size:12px; letter-spacing:0.16em; text-transform:uppercase; font-weight:700; color:#7a8a6f; margin:0 0 6px 0;">My Notes</h2>
+          <p style="font-size:12.5px; color:#8a8676; margin:0 0 14px 0;">Saved automatically in this browser.</p>
+          <textarea class="silm-note" value="{{ currentNote }}" onChange="{{ onNote }}" placeholder="Jot down thoughts, favorite lines, or answers to bring to your group…" style="width:100%; min-height:150px; resize:vertical; font-family:'Montserrat',sans-serif; font-size:15px; line-height:1.6; color:#33322b; background:#fbfaf5; border:1px solid #ddd8c7; border-radius:12px; padding:16px 18px; outline:none;" style-focus="border-color:#11521b; box-shadow:0 0 0 3px rgba(17,82,27,0.12);"></textarea>
+        </div>
+
+        <div style="margin-top:44px; padding-top:26px; border-top:1.5px solid #e0dbcb; display:flex; gap:14px;">
+          <div style="flex:1; min-width:0;">
+            <sc-if value="{{ prev.show }}">
+              <button onClick="{{ prev.onClick }}" style="width:100%; text-align:left; cursor:pointer; font-family:inherit; background:#fbfaf5; border:1px solid #e0dbc9; border-radius:12px; padding:14px 18px; display:flex; flex-direction:column; gap:4px;" style-hover="border-color:#11521b;">
+                <span style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; font-weight:700; color:#7a8a6f;">&#8592; Previous</span>
+                <span style="font-size:14px; font-weight:600; color:#1c1b16; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ prev.title }}</span>
+              </button>
+            </sc-if>
+          </div>
+          <div style="flex:1; min-width:0;">
+            <sc-if value="{{ next.show }}">
+              <button onClick="{{ next.onClick }}" style="width:100%; text-align:right; cursor:pointer; font-family:inherit; background:#fbfaf5; border:1px solid #e0dbc9; border-radius:12px; padding:14px 18px; display:flex; flex-direction:column; gap:4px; align-items:flex-end;" style-hover="border-color:#11521b;">
+                <span style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; font-weight:700; color:#7a8a6f;">Next &#8594;</span>
+                <span style="font-size:14px; font-weight:600; color:#1c1b16; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;">{{ next.title }}</span>
+              </button>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isTrackerView }}">
+        <div style="margin-bottom:34px; padding-bottom:26px; border-bottom:1.5px solid #e0dbcb;">
+          <div style="font-size:12px; letter-spacing:0.22em; text-transform:uppercase; font-weight:700; color:#11521b; margin-bottom:12px;">Running Logs</div>
+          <h1 style="font-size:34px; font-weight:800; line-height:1.14; letter-spacing:-0.015em; margin:0 0 14px 0; color:#1c1b16;">Track the Threads</h1>
+          <p style="font-size:16px; line-height:1.7; margin:0; color:#37362e; text-wrap:pretty; max-width:620px;">The guide keeps asking you to watch a few things across the whole book. Keep those running lists here — they persist as you move between chapters.</p>
+        </div>
+
+        <sc-for list="{{ trackers }}" as="t" hint-placeholder-count="4">
+          <section style="margin-bottom:30px;">
+            <h2 style="font-size:17px; font-weight:800; letter-spacing:-0.01em; color:#11521b; margin:0 0 4px 0;">{{ t.h }}</h2>
+            <p style="font-size:13.5px; line-height:1.55; color:#8a8676; margin:0 0 12px 0; text-wrap:pretty;">{{ t.hint }}</p>
+            <textarea class="silm-note" value="{{ t.value }}" onChange="{{ t.onChange }}" placeholder="Add to this log as you read…" style="width:100%; min-height:120px; resize:vertical; font-family:'Montserrat',sans-serif; font-size:15px; line-height:1.65; color:#33322b; background:#fbfaf5; border:1px solid #ddd8c7; border-radius:12px; padding:15px 18px; outline:none;" style-focus="border-color:#11521b; box-shadow:0 0 0 3px rgba(17,82,27,0.12);"></textarea>
+          </section>
+        </sc-for>
+      </sc-if>
+
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const TRACKER_VIEW = '__trackers__';
+
+class Component extends DCLogic {
+  state = { data: [], parts: [], currentId: null, read: [], notes: {}, answers: {}, trackers: {}, query: '' };
+
+  TRACKER_DEFS = [
+    { key: 'light', h: 'The Light', hint: 'Where does light appear, move, die, or persist? The Two Trees → the Silmarils → the Sun & Moon → Eärendil\u2019s star → the phial Frodo carries.' },
+    { key: 'silmarils', h: 'The Silmarils', hint: 'Who holds each jewel, who gives it away, and how it ends. Holding them destroys; giving them away saves.' },
+    { key: 'walls', h: 'Walled Paradises', hint: 'Every sanctuary and its fate — Valinor, Doriath\u2019s Girdle, hidden Gondolin, Númenor, and later the Shire.' },
+    { key: 'hope', h: 'Glimpses of Hope', hint: 'The eucatastrophes and unlooked-for turns that push back against "the long defeat."' },
+  ];
+
+  componentDidMount() {
+    let read = [], notes = {}, answers = {}, trackers = {}, currentId = null;
+    try { read = JSON.parse(localStorage.getItem('silm.read') || '[]'); } catch (e) {}
+    try { notes = JSON.parse(localStorage.getItem('silm.notes') || '{}'); } catch (e) {}
+    try { answers = JSON.parse(localStorage.getItem('silm.answers') || '{}'); } catch (e) {}
+    try { trackers = JSON.parse(localStorage.getItem('silm.trackers') || '{}'); } catch (e) {}
+    try { currentId = localStorage.getItem('silm.current') || null; } catch (e) {}
+
+    import('./silmarillion-data.js').then((m) => {
+      const data = m.DATA || [];
+      const parts = m.PARTS || [];
+      const exists = data.some((d) => d.id === currentId);
+      this.setState({
+        data, parts, read, notes, answers, trackers,
+        currentId: exists ? currentId : (data[0] && data[0].id) || null,
+      });
+    });
+  }
+
+  save(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {} }
+
+  select(id) {
+    this.setState({ currentId: id });
+    try { localStorage.setItem('silm.current', id); } catch (e) {}
+    const main = document.querySelector('main.silm-scroll');
+    if (main) main.scrollTop = 0;
+  }
+
+  openTrackers = () => this.select(TRACKER_VIEW);
+
+  toggleRead = () => {
+    const id = this.state.currentId;
+    if (!id || id === TRACKER_VIEW) return;
+    const has = this.state.read.includes(id);
+    const read = has ? this.state.read.filter((x) => x !== id) : [...this.state.read, id];
+    this.setState({ read });
+    this.save('silm.read', read);
+  };
+
+  onNote = (e) => {
+    const id = this.state.currentId;
+    if (!id) return;
+    const notes = { ...this.state.notes, [id]: e.target.value };
+    this.setState({ notes });
+    this.save('silm.notes', notes);
+  };
+
+  setAnswer(key, value) {
+    const answers = { ...this.state.answers, [key]: value };
+    this.setState({ answers });
+    this.save('silm.answers', answers);
+  }
+
+  setTracker(key, value) {
+    const trackers = { ...this.state.trackers, [key]: value };
+    this.setState({ trackers });
+    this.save('silm.trackers', trackers);
+  }
+
+  onSearch = (e) => this.setState({ query: e.target.value });
+  clearSearch = () => this.setState({ query: '' });
+
+  onExport = () => {
+    const { read, notes, answers, trackers, currentId } = this.state;
+    const payload = { app: 'silmarillion-companion', version: 1, exportedAt: new Date().toISOString(), read, notes, answers, trackers, current: currentId };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'silmarillion-notes.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  onImportClick = () => {
+    const input = document.getElementById('silm-import-input');
+    if (input) input.click();
+  };
+
+  onImportFile = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    file.text().then((txt) => {
+      let d;
+      try { d = JSON.parse(txt); } catch (err) { alert('That file could not be read as reading-companion data.'); return; }
+      const read = Array.isArray(d.read) ? d.read : this.state.read;
+      const notes = d.notes && typeof d.notes === 'object' ? d.notes : this.state.notes;
+      const answers = d.answers && typeof d.answers === 'object' ? d.answers : this.state.answers;
+      const trackers = d.trackers && typeof d.trackers === 'object' ? d.trackers : this.state.trackers;
+      this.setState({ read, notes, answers, trackers });
+      this.save('silm.read', read);
+      this.save('silm.notes', notes);
+      this.save('silm.answers', answers);
+      this.save('silm.trackers', trackers);
+    });
+    e.target.value = '';
+  };
+
+  renderVals() {
+    const { data, parts, currentId, read, query } = this.state;
+    const readSet = new Set(read);
+    const total = data.length;
+    const readCount = data.filter((d) => readSet.has(d.id)).length;
+    const progressPct = total ? Math.round((readCount / total) * 100) : 0;
+
+    const q = (query || '').trim().toLowerCase();
+    const match = (d) => !q || (d.label + ' ' + d.title).toLowerCase().includes(q);
+
+    const rowBase = 'display:flex; gap:11px; align-items:center; width:100%; text-align:left; border:none; cursor:pointer; padding:9px 12px; border-radius:9px; margin-bottom:2px; font-family:inherit; transition:background 0.15s ease;';
+    const isTracker = currentId === TRACKER_VIEW;
+
+    let visibleCount = 0;
+    const groups = parts.map((p) => {
+      const entries = data.filter((d) => d.partId === p.id && match(d)).map((d) => {
+        const active = d.id === currentId;
+        const isRead = readSet.has(d.id);
+        visibleCount++;
+        return {
+          id: d.id, label: d.label, title: d.title,
+          onSelect: () => this.select(d.id),
+          rowStyle: rowBase + (active ? 'background:rgba(255,255,255,0.16);' : 'background:transparent;'),
+          check: isRead ? '\u2713' : '',
+          checkStyle: 'flex:0 0 auto; width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; ' +
+            (isRead ? 'background:#a9d8ae; color:#11521b;' : 'background:transparent; border:1.5px solid rgba(255,255,255,0.28); color:transparent;'),
+          labelColor: active ? '#cfe6d2' : '#7fae86',
+          titleColor: active ? '#ffffff' : '#dbe6dc',
+        };
+      });
+      return { id: p.id, title: p.title, entries };
+    }).filter((g) => g.entries.length > 0);
+
+    const cur = data.find((d) => d.id === currentId) || null;
+    const blocks = cur ? cur.blocks.map((b, bi) => {
+      const isQuestions = b.kind === 'questions';
+      const isList = b.kind === 'list';
+      const isProse = b.kind === 'prose';
+      const isLink = b.kind === 'link';
+      return {
+        h: isQuestions ? (b.h || 'For Discussion') : (b.h || ''),
+        isProse, isList, isQuestions, isLink,
+        body: b.body || '',
+        href: b.href || '#',
+        label: b.label || 'Open',
+        listItems: isList ? (b.items || []).map((it, i) => ({
+          marker: b.ordered ? (i + 1) + '.' : '\u25C6',
+          lead: it.lead || '', text: it.text || '',
+        })) : [],
+        questions: isQuestions ? (b.items || []).map((t, i) => {
+          const key = currentId + '::' + bi + '::' + i;
+          return { n: i + 1, text: t, answer: this.state.answers[key] || '', onAnswer: (e) => this.setAnswer(key, e.target.value) };
+        }) : [],
+      };
+    }) : [];
+
+    const curIsRead = cur ? readSet.has(cur.id) : false;
+    const readBtnBase = 'flex:0 0 auto; cursor:pointer; font-family:inherit; font-size:12.5px; font-weight:700; letter-spacing:0.04em; padding:11px 18px; border-radius:99px; white-space:nowrap; transition:filter 0.15s ease;';
+
+    const idx = cur ? data.findIndex((d) => d.id === cur.id) : -1;
+    const prevD = idx > 0 ? data[idx - 1] : null;
+    const nextD = idx >= 0 && idx < data.length - 1 ? data[idx + 1] : null;
+
+    const logsBtnBase = 'display:flex; align-items:center; gap:11px; width:100%; text-align:left; border:none; cursor:pointer; padding:12px 14px; border-radius:10px; font-family:inherit; transition:background 0.15s ease;';
+
+    return {
+      groups,
+      noResults: !!q && visibleCount === 0,
+      query: query || '',
+      hasQuery: !!query,
+      onSearch: this.onSearch,
+      clearSearch: this.clearSearch,
+      progressPct,
+      progressLabel: readCount + ' / ' + total,
+
+      openTrackers: this.openTrackers,
+      logsBtnStyle: logsBtnBase + (isTracker ? 'background:rgba(255,255,255,0.16);' : 'background:rgba(255,255,255,0.06);'),
+
+      isChapterView: !isTracker,
+      isTrackerView: isTracker,
+
+      current: cur ? { label: cur.label, title: cur.title, blocks } : { label: '', title: '', blocks: [] },
+      toggleRead: this.toggleRead,
+      readBtnLabel: curIsRead ? '\u2713  Read' : 'Mark as read',
+      readBtnStyle: readBtnBase + (curIsRead
+        ? 'background:#11521b; color:#fff; border:1.5px solid #11521b;'
+        : 'background:transparent; color:#11521b; border:1.5px solid #11521b;'),
+      currentNote: cur ? (this.state.notes[cur.id] || '') : '',
+      onNote: this.onNote,
+
+      prev: prevD ? { show: true, title: prevD.label + ' — ' + prevD.title, onClick: () => this.select(prevD.id) } : { show: false },
+      next: nextD ? { show: true, title: nextD.label + ' — ' + nextD.title, onClick: () => this.select(nextD.id) } : { show: false },
+
+      trackers: this.TRACKER_DEFS.map((t) => ({
+        h: t.h, hint: t.hint,
+        value: this.state.trackers[t.key] || '',
+        onChange: (e) => this.setTracker(t.key, e.target.value),
+      })),
+
+      onExport: this.onExport,
+      onImportClick: this.onImportClick,
+      onImportFile: this.onImportFile,
+    };
+  }
+}
+</script>
+</body>
+</html>
