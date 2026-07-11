@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;background:#0c0b09;}
+  a{color:var(--accent,#9c5b34);text-decoration:none;border-bottom:1px solid rgba(156,91,52,.4);}
+  a:hover{color:var(--gold,#b08637);border-bottom-color:currentColor;}
+  [data-theme="parchment"]{--sea:#c9d3cf;--ink:#2c2317;--ink-soft:#6f6046;--panel:#f5edd8;--panel-2:#ede2c6;--panel-bd:#d5c39c;--accent:#9c4a2a;--gold:#a9762c;--chip:#e7dabc;--shadow:0 10px 30px rgba(60,44,24,.22);}
+  [data-theme="dark"]{--sea:#0d1519;--ink:#e8d9b2;--ink-soft:#9c8c69;--panel:#1a1712;--panel-2:#221d15;--panel-bd:#3a3323;--accent:#d98b4c;--gold:#cfa24a;--chip:#2a2418;--shadow:0 12px 34px rgba(0,0,0,.5);}
+  ::selection{background:rgba(156,74,42,.28);}
+  @keyframes silmPulse{0%{r:16px;opacity:.85;}70%{r:52px;opacity:0;}100%{r:52px;opacity:0;}}
+  @keyframes silmIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+  .silm-shell{display:flex;height:100vh;width:100%;overflow:hidden;}
+  .silm-side{width:352px;flex:none;height:100vh;overflow-y:auto;}
+  .silm-map{flex:1;position:relative;min-width:0;}
+  .silm-detail{position:absolute;top:16px;right:16px;width:322px;max-height:calc(100% - 32px);overflow-y:auto;animation:silmIn .28s ease both;}
+  .silm-scroll::-webkit-scrollbar{width:9px;height:9px;}
+  .silm-scroll::-webkit-scrollbar-thumb{background:var(--panel-bd);border-radius:5px;}
+  .silm-scroll::-webkit-scrollbar-track{background:transparent;}
+  @media(max-width:860px){
+    .silm-shell{flex-direction:column-reverse;}
+    .silm-side{width:100%;height:46vh;}
+    .silm-map{height:54vh;}
+    .silm-detail{top:auto;bottom:12px;left:12px;right:12px;width:auto;max-height:60%;}
+  }
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#ece0c1"/><text x="50" y="62" font-family="Georgia,serif" font-size="46" fill="#9c4a2a" text-anchor="middle">B</text></svg></template>
+<div class="silm-shell" data-theme="{{theme}}" style="font-family:'EB Garamond',Georgia,serif;color:var(--ink,#2c2317);">
+
+  <aside class="silm-side silm-scroll" style="background:var(--panel,#f5edd8);border-right:1px solid var(--panel-bd,#d5c39c);">
+    <div style="padding:24px 22px 34px;">
+
+      <div style="border-bottom:1px solid var(--panel-bd,#d5c39c);padding-bottom:16px;margin-bottom:18px;">
+        <div style="font-family:'Cinzel',serif;font-weight:600;font-size:30px;letter-spacing:.14em;line-height:1;color:var(--ink,#2c2317);">BELERIAND</div>
+        <div style="font-style:italic;font-size:14.5px;color:var(--ink-soft,#6f6046);margin-top:7px;letter-spacing:.02em;">An interactive atlas of the First Age</div>
+      </div>
+
+      <div style="position:relative;margin-bottom:22px;">
+        <input value="{{query}}" onInput="{{onQuery}}" placeholder="Search a place…" spellcheck="false" style="width:100%;padding:11px 13px;font-family:'EB Garamond',serif;font-size:15px;color:var(--ink,#2c2317);background:var(--panel-2,#ede2c6);border:1px solid var(--panel-bd,#d5c39c);border-radius:8px;outline:none;" />
+        <sc-if value="{{hasResults}}" hint-placeholder-val="{{false}}">
+          <div style="position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:20;background:var(--panel,#f5edd8);border:1px solid var(--panel-bd,#d5c39c);border-radius:8px;box-shadow:var(--shadow);overflow:hidden;">
+            <sc-for list="{{results}}" as="r" hint-placeholder-count="3">
+              <div onClick="{{r.choose}}" style="padding:9px 13px;cursor:pointer;font-size:15px;border-bottom:1px solid var(--panel-bd,#d5c39c);display:flex;justify-content:space-between;gap:10px;align-items:baseline;" onMouseEnter="{{r.hoverIn}}" onMouseLeave="{{r.hoverOut}}">
+                <span>{{r.name}}</span>
+                <span style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft,#6f6046);font-family:'Cinzel',serif;">{{r.type}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <div style="font-family:'Cinzel',serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft,#6f6046);margin-bottom:10px;">The Age</div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;">
+          <div style="font-family:'Cinzel',serif;font-size:18px;color:var(--ink,#2c2317);line-height:1.15;">{{eraName}}</div>
+        </div>
+        <div style="font-size:12.5px;color:var(--accent,#9c4a2a);letter-spacing:.06em;font-family:'Cinzel',serif;margin-top:3px;">{{eraYears}}</div>
+        <input type="range" min="0" max="4" step="1" value="{{era}}" onInput="{{onEra}}" style="width:100%;margin:14px 0 6px;accent-color:var(--accent,#9c4a2a);" />
+        <div style="display:flex;justify-content:space-between;">
+          <button onClick="{{prevEra}}" style="background:none;border:none;color:var(--ink-soft,#6f6046);font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;cursor:pointer;padding:2px 0;">‹ EARLIER</button>
+          <button onClick="{{nextEra}}" style="background:none;border:none;color:var(--ink-soft,#6f6046);font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;cursor:pointer;padding:2px 0;">LATER ›</button>
+        </div>
+        <div style="font-style:italic;font-size:14px;line-height:1.5;color:var(--ink,#2c2317);margin-top:8px;opacity:.9;">{{eraNote}}</div>
+      </div>
+
+      <div style="margin-bottom:22px;">
+        <div style="font-family:'Cinzel',serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft,#6f6046);margin-bottom:10px;">Overlays</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <button onClick="{{togglePlaces}}" style="{{placesChip}}">Places</button>
+          <button onClick="{{toggleRealms}}" style="{{realmsChip}}">Realms</button>
+          <button onClick="{{toggleBattles}}" style="{{battlesChip}}">Battles</button>
+        </div>
+      </div>
+
+      <sc-if value="{{showRealmList}}" hint-placeholder-val="{{false}}">
+        <div style="margin-bottom:22px;">
+          <div style="font-family:'Cinzel',serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft,#6f6046);margin-bottom:10px;">Realms of this age</div>
+          <sc-for list="{{realmList}}" as="rl" hint-placeholder-count="5">
+            <div onClick="{{rl.choose}}" style="display:flex;align-items:center;gap:10px;padding:5px 0;cursor:pointer;font-size:15px;">
+              <span style="width:14px;height:14px;border-radius:3px;flex:none;background:{{rl.color}};border:1px solid rgba(0,0,0,.2);"></span>
+              <span>{{rl.name}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <div style="margin-bottom:22px;">
+        <div style="font-family:'Cinzel',serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft,#6f6046);margin-bottom:10px;">Follow a journey</div>
+        <sc-for list="{{journeyBtns}}" as="j" hint-placeholder-count="4">
+          <button onClick="{{j.select}}" style="{{j.style}}">
+            <span style="width:10px;height:10px;border-radius:50%;flex:none;background:{{j.color}};box-shadow:0 0 0 3px {{j.halo}};"></span>
+            <span>{{j.name}}</span>
+          </button>
+        </sc-for>
+        <sc-if value="{{hasJourney}}" hint-placeholder-val="{{false}}">
+          <button onClick="{{clearJourney}}" style="margin-top:8px;background:none;border:none;color:var(--accent,#9c4a2a);font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;cursor:pointer;">× CLEAR JOURNEY</button>
+        </sc-if>
+      </div>
+
+      <div style="border-top:1px solid var(--panel-bd,#d5c39c);padding-top:14px;font-size:12.5px;line-height:1.55;color:var(--ink-soft,#6f6046);font-style:italic;">
+        Base map by Christopher Tolkien (your upload). Pins link to <a href="https://tolkiengateway.net/" target="_blank" rel="noopener">Tolkien&nbsp;Gateway</a> for deeper lore.
+      </div>
+
+    </div>
+  </aside>
+
+  <main class="silm-map" ref="{{mapRef}}" onWheel="{{onWheel}}" onPointerDown="{{onDown}}" onPointerMove="{{onMove}}" onPointerUp="{{onUp}}" onPointerLeave="{{onUp}}" style="background:var(--sea,#c9d3cf);overflow:hidden;touch-action:none;cursor:grab;">
+    <div style="position:absolute;top:0;left:0;width:1893px;height:1391px;transform:{{world}};transform-origin:0 0;will-change:transform;">
+      <img src="map-of-beleriand.jpg" alt="Map of Beleriand" draggable="false" style="display:block;width:1893px;height:1391px;filter:{{imgFilter}};" />
+      <svg viewBox="0 0 1893 1391" preserveAspectRatio="none" style="position:absolute;top:0;left:0;width:1893px;height:1391px;overflow:visible;pointer-events:none;">
+
+        <sc-if value="{{burnt}}" hint-placeholder-val="{{false}}">
+          <polygon points="568,42 1325,42 1420,209 1230,320 850,340 605,278 512,167" style="fill:rgba(60,14,6,.30);mix-blend-mode:multiply;" />
+        </sc-if>
+
+        <sc-if value="{{overlays.realms}}" hint-placeholder-val="{{true}}">
+          <g>
+            <sc-for list="{{realms}}" as="rm" hint-placeholder-count="6">
+              <polygon points="{{rm.points}}" style="fill:{{rm.fill}};stroke:{{rm.stroke}};stroke-width:2.5;stroke-dasharray:9 7;opacity:.55;" />
+            </sc-for>
+          </g>
+        </sc-if>
+
+        <sc-if value="{{hasJourney}}" hint-placeholder-val="{{false}}">
+          <g>
+            <path d="{{journey.d}}" style="fill:none;stroke:{{journey.color}};stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:{{journey.len}};stroke-dashoffset:{{journey.offset}};opacity:.92;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35));" />
+            <sc-for list="{{journey.stops}}" as="st" hint-placeholder-count="5">
+              <g style="opacity:{{st.shown}};">
+                <circle cx="{{st.x}}" cy="{{st.y}}" r="13" style="fill:{{journey.color}};stroke:#fbf4e4;stroke-width:3;" />
+                <text x="{{st.x}}" y="{{st.ty}}" text-anchor="middle" style="font-family:'Cinzel',serif;font-size:22px;fill:{{journey.color}};paint-order:stroke;stroke:#fbf4e4;stroke-width:5px;stroke-linejoin:round;">{{st.n}}. {{st.label}}</text>
+              </g>
+            </sc-for>
+          </g>
+        </sc-if>
+
+        <sc-if value="{{overlays.battles}}" hint-placeholder-val="{{true}}">
+          <g>
+            <sc-for list="{{battles}}" as="b" hint-placeholder-count="4">
+              <g onClick="{{b.select}}" style="cursor:pointer;pointer-events:auto;">
+                <circle cx="{{b.x}}" cy="{{b.y}}" r="17" style="fill:rgba(251,244,228,.72);" />
+                <path d="{{b.star}}" style="fill:#8a1f14;stroke:#fbf4e4;stroke-width:2.5;stroke-linejoin:round;" />
+                <text x="{{b.x}}" y="{{b.ty}}" text-anchor="middle" style="font-family:'Cinzel',serif;font-size:21px;fill:#8a1f14;paint-order:stroke;stroke:#fbf4e4;stroke-width:5px;stroke-linejoin:round;">{{b.name}}</text>
+              </g>
+            </sc-for>
+          </g>
+        </sc-if>
+
+        <sc-if value="{{overlays.places}}" hint-placeholder-val="{{true}}">
+          <g>
+            <sc-for list="{{places}}" as="p" hint-placeholder-count="10">
+              <g onClick="{{p.select}}" style="cursor:pointer;pointer-events:auto;" onMouseEnter="{{p.hoverIn}}" onMouseLeave="{{p.hoverOut}}">
+                <circle cx="{{p.x}}" cy="{{p.y}}" r="{{p.halo}}" style="fill:rgba(251,244,228,.55);" />
+                <circle cx="{{p.x}}" cy="{{p.y}}" r="{{p.r}}" style="fill:{{p.fill}};stroke:#fbf4e4;stroke-width:2.5;" />
+              </g>
+            </sc-for>
+          </g>
+        </sc-if>
+
+        <sc-if value="{{selPin}}" hint-placeholder-val="{{false}}">
+          <g>
+            <circle cx="{{selX}}" cy="{{selY}}" r="16" style="fill:none;stroke:var(--gold,#a9762c);stroke-width:3.5;" />
+            <circle cx="{{selX}}" cy="{{selY}}" r="16" style="fill:none;stroke:var(--gold,#a9762c);stroke-width:3;animation:silmPulse 1.9s ease-out infinite;" />
+          </g>
+        </sc-if>
+      </svg>
+    </div>
+
+    <div style="position:absolute;top:14px;left:50%;transform:translateX(-50%);background:var(--panel,#f5edd8);border:1px solid var(--panel-bd,#d5c39c);border-radius:999px;padding:7px 18px;box-shadow:var(--shadow);font-family:'Cinzel',serif;font-size:13px;letter-spacing:.1em;color:var(--ink,#2c2317);white-space:nowrap;">{{eraName}} · <span style="color:var(--accent,#9c4a2a);">{{eraYears}}</span></div>
+
+    <div style="position:absolute;top:14px;left:14px;display:flex;flex-direction:column;gap:8px;">
+      <button onClick="{{zoomIn}}" style="{{toolBtn}}">+</button>
+      <button onClick="{{zoomOut}}" style="{{toolBtn}}">−</button>
+      <button onClick="{{reset}}" title="Reset view" style="{{toolBtn}}">↺</button>
+      <button onClick="{{toggleTheme}}" title="Toggle theme" style="{{toolBtn}}">{{themeIcon}}</button>
+    </div>
+
+    <div style="position:absolute;bottom:14px;left:14px;background:var(--panel,#f5edd8);border:1px solid var(--panel-bd,#d5c39c);border-radius:8px;padding:9px 13px;box-shadow:var(--shadow);font-size:12.5px;color:var(--ink,#2c2317);display:flex;gap:16px;align-items:center;">
+      <span style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:50%;background:#7a3b12;border:2px solid #fbf4e4;box-shadow:0 0 0 3px rgba(251,244,228,.5);"></span>Place</span>
+      <span style="display:flex;align-items:center;gap:6px;"><span style="width:13px;height:13px;background:#8a1f14;transform:rotate(45deg);border:1.5px solid #fbf4e4;"></span>Battle</span>
+      <span style="font-style:italic;color:var(--ink-soft,#6f6046);">Scroll to zoom · drag to pan</span>
+    </div>
+
+    <sc-if value="{{selected}}" hint-placeholder-val="{{false}}">
+      <div class="silm-detail silm-scroll" style="background:var(--panel,#f5edd8);border:1px solid var(--panel-bd,#d5c39c);border-radius:12px;box-shadow:var(--shadow);padding:20px 20px 22px;">
+        <button onClick="{{closeDetail}}" style="position:absolute;top:12px;right:12px;background:none;border:none;font-size:22px;line-height:1;color:var(--ink-soft,#6f6046);cursor:pointer;">×</button>
+        <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent,#9c4a2a);margin-bottom:5px;">{{detail.kindLabel}}</div>
+        <div style="font-family:'Cinzel',serif;font-size:24px;line-height:1.1;color:var(--ink,#2c2317);padding-right:22px;">{{detail.name}}</div>
+        <sc-if value="{{detail.fallen}}" hint-placeholder-val="{{false}}">
+          <div style="display:inline-block;margin-top:9px;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-family:'Cinzel',serif;color:#8a1f14;border:1px solid #8a1f14;border-radius:5px;padding:2px 8px;">{{detail.fallenLabel}}</div>
+        </sc-if>
+        <div style="font-size:16px;line-height:1.62;margin-top:13px;color:var(--ink,#2c2317);">{{detail.desc}}</div>
+        <a href="{{detail.gwUrl}}" target="_blank" rel="noopener" style="display:inline-block;margin-top:15px;font-family:'Cinzel',serif;font-size:13px;letter-spacing:.05em;">Read more on Tolkien Gateway →</a>
+      </div>
+    </sc-if>
+
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;parchment&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;parchment&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Appearance&quot;},&quot;startEra&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:0,&quot;max&quot;:4,&quot;step&quot;:1,&quot;default&quot;:1,&quot;unit&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Appearance&quot;}}">
+class Component extends DCLogic {
+  W = 1893; H = 1391; CX = 946.5; CY = 695.5;
+
+  ERAS = [
+    { name: "Arrival of the Noldor", years: "F.A. 1\u201360", note: "F\u00ebanor falls in the Battle-under-Stars; Fingolfin's host crosses the Grinding Ice into Hithlum." },
+    { name: "The Long Siege", years: "F.A. 60\u2013455", note: "After the Glorious Battle the Noldor besiege Angband for near four hundred years of watchful peace." },
+    { name: "The Sudden Flame", years: "F.A. 455\u2013472", note: "Morgoth looses rivers of fire across Ard-galen; the Siege is broken and Dorthonion and Tol Sirion are lost." },
+    { name: "The Unnumbered Tears", years: "F.A. 472\u2013495", note: "The Union of Maedhros is ruined at the Nirnaeth; the Falas fall and Hithlum is overrun." },
+    { name: "The Fall of the Realms", years: "F.A. 495\u2013587", note: "Nargothrond, Doriath and Gondolin are undone; the last Eldar gather at the Mouths of Sirion." }
+  ];
+
+  LOCS = [
+    { id:"angband", nx:.44, ny:.02, type:"stronghold of the enemy", gw:"Angband", eras:[0,4], fill:"#161310", desc:"Morgoth's vast subterranean fortress beneath the triple peaks of Thangorodrim, north beyond the plain." },
+    { id:"eithel", nx:.42, ny:.095, type:"fortress", gw:"Eithel_Sirion", eras:[0,3], fill:"#6b1f1f", name:"Eithel Sirion", desc:"Fingolfin's chief stronghold at the Well of Sirion, guarding the eastern spurs of Ered Wethrin." },
+    { id:"hithlum", nx:.235, ny:.075, type:"region", gw:"Hithlum", eras:[0,4], fill:"#3f5a2a", desc:"The misty northern land of Fingolfin and Fingon, walled by the Mountains of Shadow." },
+    { id:"dorlomin", nx:.27, ny:.205, type:"region", gw:"Dor-l\u00f3min", eras:[0,4], fill:"#3f5a2a", name:"Dor-l\u00f3min", desc:"Fief of the House of Hador; home of H\u00farin and the childhood home of T\u00farin." },
+    { id:"nevrast", nx:.135, ny:.255, type:"region", gw:"Nevrast", eras:[0,4], fill:"#3f5a2a", desc:"Coastal land where Turgon dwelt before the building of Gondolin." },
+    { id:"vinyamar", nx:.06, ny:.29, type:"city", gw:"Vinyamar", eras:[0,4], fill:"#7a3b12", desc:"Turgon's house by the sea in Nevrast, left empty when he departed in secret." },
+    { id:"tolsirion", nx:.385, ny:.205, type:"fortress", gw:"Tol_Sirion", eras:[0,1], fill:"#6b1f1f", name:"Tol Sirion", desc:"Finrod's watchtower Minas Tirith upon an isle in the Pass of Sirion; later Sauron's Tol-in-Gaurhoth." },
+    { id:"gondolin", nx:.445, ny:.202, type:"city", gw:"Gondolin", eras:[0,4], fill:"#7a3b12", desc:"Turgon's hidden city in the vale of Tumladen, ringed by the Encircling Mountains." },
+    { id:"dorthonion", nx:.55, ny:.175, type:"region", gw:"Dorthonion", eras:[0,4], fill:"#3f5a2a", name:"Dorthonion", desc:"The pine highlands of Angrod and Aegnor, made the haunted Taur-nu-Fuin after the Sudden Flame." },
+    { id:"himring", nx:.725, ny:.19, type:"fortress", gw:"Himring", eras:[0,4], fill:"#6b1f1f", desc:"The ever-cold hill crowned by Maedhros's stronghold, warding the eastern march." },
+    { id:"thargelion", nx:.84, ny:.27, type:"region", gw:"Thargelion", eras:[0,3], fill:"#3f5a2a", desc:"Caranthir's land east of Gelion, beneath Mount Rerir and Lake Helevorn." },
+    { id:"belegost", nx:.935, ny:.29, type:"dwarf-city", gw:"Belegost", eras:[0,4], fill:"#4a4030", desc:"The Great Fortress of the Dwarves in Ered Luin; staunch allies in the Nirnaeth." },
+    { id:"nogrod", nx:.928, ny:.315, type:"dwarf-city", gw:"Nogrod", eras:[0,4], fill:"#4a4030", desc:"City of the Dwarf master-smiths in the Blue Mountains." },
+    { id:"ossiriand", nx:.90, ny:.48, type:"region", gw:"Ossiriand", eras:[0,4], fill:"#3f5a2a", desc:"The Land of Seven Rivers, home of the Green-elves under the eaves of Ered Luin." },
+    { id:"amonereb", nx:.665, ny:.545, type:"hill", gw:"Amon_Ereb", eras:[0,4], fill:"#5a4a2a", name:"Amon Ereb", desc:"The Lonely Hill of East Beleriand; refuge of Maedhros after the Unnumbered Tears." },
+    { id:"nargothrond", nx:.335, ny:.41, type:"city", gw:"Nargothrond", eras:[0,3], fill:"#7a3b12", desc:"Finrod Felagund's hidden cavern-city on the west bank of the Narog." },
+    { id:"menegroth", nx:.60, ny:.32, type:"city", gw:"Menegroth", eras:[0,4], fill:"#7a3b12", desc:"The Thousand Caves of Thingol and Melian, delved beside the Esgalduin." },
+    { id:"doriath", nx:.635, ny:.375, type:"region", gw:"Doriath", eras:[0,4], fill:"#3f5a2a", desc:"The Guarded Kingdom of Thingol, encircled by the Girdle of Melian." },
+    { id:"brethil", nx:.41, ny:.335, type:"region", gw:"Brethil", eras:[0,4], fill:"#3f5a2a", desc:"The forest of the Haladin between Teiglin and Sirion; last home of T\u00farin." },
+    { id:"brithombar", nx:.125, ny:.35, type:"haven", gw:"Brithombar", eras:[0,2], fill:"#1f5f6b", desc:"Northern of the Havens of the Falas under C\u00edrdan the Shipwright." },
+    { id:"eglarest", nx:.155, ny:.40, type:"haven", gw:"Eglarest", eras:[0,2], fill:"#1f5f6b", desc:"Southern haven of the Falas at the mouth of the Nenning." },
+    { id:"nantathren", nx:.335, ny:.715, type:"region", gw:"Nan-tathren", eras:[0,4], fill:"#3f5a2a", name:"Nan-tathren", desc:"The Land of Willows where Narog joins Sirion; a place of rest and reverie." },
+    { id:"mouths", nx:.44, ny:.775, type:"haven", gw:"Mouths_of_Sirion", eras:[2,4], fill:"#1f5f6b", name:"Mouths of Sirion", desc:"The last refuge of the Eldar in Beleriand, where E\u00e4rendil and Elwing dwelt." },
+    { id:"balar", nx:.285, ny:.91, type:"haven", gw:"Isle_of_Balar", eras:[0,4], fill:"#1f5f6b", name:"Isle of Balar", desc:"Island in the great bay where C\u00edrdan's folk found haven." },
+    { id:"dungortheb", nx:.60, ny:.265, type:"region", gw:"Nan_Dungortheb", eras:[0,4], fill:"#5a2a2a", name:"Nan Dungortheb", desc:"The Valley of Dreadful Death below the Mountains of Terror." },
+    { id:"mithrim", nx:.35, ny:.15, type:"region", gw:"Mithrim", eras:[0,4], fill:"#1f5f8b", desc:"The great lake and land where the Noldor first encamped on their return." },
+    { id:"ivrin", nx:.265, ny:.27, type:"water", gw:"Ivrin", eras:[0,3], fill:"#1f5f8b", desc:"The pools at Narog's source, hallowed to Ulmo." },
+    { id:"amonrudh", nx:.42, ny:.38, type:"hill", gw:"Amon_R\u00fadh", eras:[1,3], fill:"#5a4a2a", name:"Amon R\u00fadh", desc:"Lonely hill where T\u00farin's outlaws sheltered with M\u00eem the Petty-dwarf." },
+    { id:"estolad", nx:.725, ny:.38, type:"region", gw:"Estolad", eras:[0,4], fill:"#3f5a2a", desc:"The Encampment, where the first Men settled east of Doriath." },
+    { id:"march", nx:.78, ny:.185, type:"region", gw:"March_of_Maedhros", eras:[0,3], fill:"#5a4a2a", name:"March of Maedhros", desc:"The open eastern frontier warded by the sons of F\u00ebanor." },
+    { id:"aeluin", nx:.58, ny:.16, type:"water", gw:"Tarn_Aeluin", eras:[1,2], fill:"#1f5f8b", name:"Tarn Aeluin", desc:"Mountain lake where Barahir and his twelve outlaws hid, until betrayed." }
+  ];
+
+  BATTLES = [
+    { id:"giliath", nx:.30, ny:.135, era:0, gw:"Dagor-nuin-Giliath", name:"Dagor-nuin-Giliath", desc:"The Battle-under-Stars; the newly-come Noldor destroy Morgoth's host near Mithrim." },
+    { id:"aglareb", nx:.50, ny:.055, era:1, gw:"Dagor_Aglareb", name:"Dagor Aglareb", desc:"The Glorious Battle routs Angband and opens the four-hundred-year Siege." },
+    { id:"bragollach", nx:.55, ny:.075, era:2, gw:"Dagor_Bragollach", name:"Dagor Bragollach", desc:"The Battle of Sudden Flame; Morgoth's fire breaks the Siege and burns Ard-galen to ash." },
+    { id:"nirnaeth", nx:.45, ny:.105, era:3, gw:"Nirnaeth_Arnoediad", name:"Nirnaeth Arnoediad", desc:"The Battle of Unnumbered Tears; the ruin of the Union of Maedhros before Angband's gates." },
+    { id:"gondolin", nx:.445, ny:.202, era:4, gw:"Fall_of_Gondolin", name:"Fall of Gondolin", desc:"Betrayed from within, the hidden city is stormed and cast down by Morgoth's legions." }
+  ];
+
+  REALMS = [
+    { id:"hithlum", name:"Hithlum (Fingolfin)", color:"#4f7fb5", eras:[0,2], focus:"hithlum", pts:[[.10,.035],[.31,.05],[.30,.24],[.15,.25],[.06,.14]] },
+    { id:"nevrast", name:"Nevrast (Turgon)", color:"#3f9aa8", eras:[0,4], focus:"nevrast", pts:[[.045,.235],[.19,.25],[.18,.345],[.06,.335]] },
+    { id:"dorthonion", name:"Dorthonion (Angrod & Aegnor)", color:"#8a8358", eras:[0,1], focus:"dorthonion", pts:[[.50,.115],[.66,.145],[.65,.225],[.53,.235],[.47,.16]] },
+    { id:"march", name:"March of Maedhros (F\u00ebanorians)", color:"#b0713f", eras:[0,3], focus:"himring", pts:[[.68,.13],[.93,.16],[.92,.30],[.76,.31],[.71,.22]] },
+    { id:"thargelion", name:"Thargelion (Caranthir)", color:"#a85f5f", eras:[0,3], focus:"thargelion", pts:[[.80,.22],[.94,.245],[.925,.40],[.80,.40]] },
+    { id:"nargothrond", name:"Nargothrond (Finrod)", color:"#4f8a55", eras:[0,3], focus:"nargothrond", pts:[[.235,.30],[.44,.325],[.45,.50],[.335,.56],[.235,.46]] },
+    { id:"doriath", name:"Doriath (Thingol & Melian)", color:"#7e5fa8", eras:[0,4], focus:"menegroth", pts:[[.47,.26],[.70,.275],[.71,.42],[.55,.45],[.46,.36]] },
+    { id:"falas", name:"The Falas (C\u00edrdan)", color:"#2f8f8f", eras:[0,2], focus:"brithombar", pts:[[.10,.30],[.205,.315],[.20,.44],[.11,.435]] },
+    { id:"ossiriand", name:"Ossiriand (Green-elves)", color:"#8a9a3f", eras:[0,4], focus:"ossiriand", pts:[[.78,.42],[.94,.445],[.915,.82],[.785,.80],[.775,.55]] },
+    { id:"gondolin", name:"Gondolin (Turgon)", color:"#c39a3f", eras:[0,4], focus:"gondolin", pts:[[.425,.183],[.47,.19],[.47,.226],[.425,.222]] }
+  ];
+
+  JOURNEYS = [
+    { id:"beren", name:"Beren & L\u00fathien", color:"#b5322f", halo:"rgba(181,50,47,.28)",
+      desc:"From ruined Dorthonion to Doriath, the quest for a Silmaril, and the long road to Angband and back.",
+      pts:[ {nx:.55,ny:.175,l:"Dorthonion falls"},{nx:.60,ny:.265,l:"Nan Dungortheb"},{nx:.60,ny:.32,l:"Meets L\u00fathien"},{nx:.335,ny:.41,l:"Nargothrond"},{nx:.385,ny:.205,l:"Tol-in-Gaurhoth"},{nx:.44,ny:.03,l:"Angband \u2013 the Silmaril"},{nx:.60,ny:.32,l:"Return to Doriath"} ] },
+    { id:"turin", name:"T\u00farin Turambar", color:"#2f6fb0", halo:"rgba(47,111,176,.28)",
+      desc:"The wanderings of T\u00farin from Hador's house through Doriath and Nargothrond to his fate in Brethil.",
+      pts:[ {nx:.27,ny:.205,l:"Dor-l\u00f3min"},{nx:.60,ny:.32,l:"Doriath"},{nx:.42,ny:.38,l:"Amon R\u00fadh"},{nx:.335,ny:.41,l:"Nargothrond"},{nx:.27,ny:.205,l:"Dor-l\u00f3min again"},{nx:.41,ny:.335,l:"Brethil \u2013 the end"} ] },
+    { id:"tuor", name:"Tuor & the road to the Sea", color:"#2f8a5a", halo:"rgba(47,138,90,.28)",
+      desc:"Tuor's road from Hithlum to Vinyamar, guided to hidden Gondolin, and his escape at last to the sea.",
+      pts:[ {nx:.27,ny:.205,l:"Dor-l\u00f3min"},{nx:.06,ny:.29,l:"Vinyamar"},{nx:.445,ny:.202,l:"Gondolin"},{nx:.44,ny:.775,l:"Mouths of Sirion"} ] },
+    { id:"fingolfin", name:"Fingolfin's host", color:"#7a53a8", halo:"rgba(122,83,168,.28)",
+      desc:"Fingolfin's people cross the Grinding Ice out of the North and come at last into Hithlum.",
+      pts:[ {nx:.11,ny:.055,l:"Lammoth"},{nx:.235,ny:.075,l:"Hithlum"},{nx:.35,ny:.15,l:"Mithrim"} ] }
+  ];
+
+  state = {
+    theme: "parchment", era: 1, query: "",
+    overlays: { places: true, realms: true, battles: true },
+    world: { tx: 0, ty: 0, s: 0.38 },
+    selected: null, selKind: null, journeyId: null, jprog: 1, hoverId: null
+  };
+
+  componentDidMount() {
+    if (this.props.theme) this.setState({ theme: this.props.theme });
+    if (this.props.startEra != null) this.setState({ era: this.props.startEra });
+    this._resize = () => this.fit();
+    window.addEventListener("resize", this._resize);
+  }
+  componentWillUnmount() {
+    window.removeEventListener("resize", this._resize);
+    if (this._raf) cancelAnimationFrame(this._raf);
+  }
+
+  X(n){ return +(n * this.W).toFixed(1); }
+  Y(n){ return +(n * this.H).toFixed(1); }
+  clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+
+  mapRef = (el) => { this.mapEl = el; if (el) requestAnimationFrame(() => this.fit()); };
+
+  size(){ const r = this.mapEl ? this.mapEl.getBoundingClientRect() : { width: 900, height: 620, left: 0, top: 0 }; return { cw: r.width, ch: r.height, left: r.left, top: r.top }; }
+  baseScale(){ const { cw, ch } = this.size(); return Math.min(cw / this.W, ch / this.H) || 0.38; }
+
+  fit(){ const { cw, ch } = this.size(); const s = Math.min(cw / this.W, ch / this.H); this.setState({ world: { s, tx: (cw - this.W * s) / 2, ty: (ch - this.H * s) / 2 } }); }
+
+  clampS(s){ const b = this.baseScale(); return this.clamp(s, b * 0.85, b * 7.5); }
+
+  onWheel = (e) => {
+    if (e.cancelable) e.preventDefault();
+    const { left, top } = this.size(); const w = this.state.world;
+    const cxp = e.clientX - left, cyp = e.clientY - top;
+    const ns = this.clampS(w.s * (e.deltaY < 0 ? 1.12 : 1/1.12));
+    const mx = (cxp - w.tx) / w.s, my = (cyp - w.ty) / w.s;
+    this.setState({ world: { s: ns, tx: cxp - mx * ns, ty: cyp - my * ns } });
+  };
+  onDown = (e) => { this._drag = { x: e.clientX, y: e.clientY }; if (this.mapEl) this.mapEl.style.cursor = "grabbing"; };
+  onMove = (e) => {
+    if (!this._drag) return;
+    const w = this.state.world;
+    const dx = e.clientX - this._drag.x, dy = e.clientY - this._drag.y;
+    this._drag.x = e.clientX; this._drag.y = e.clientY;
+    this.setState({ world: { s: w.s, tx: w.tx + dx, ty: w.ty + dy } });
+  };
+  onUp = () => { this._drag = null; if (this.mapEl) this.mapEl.style.cursor = "grab"; };
+
+  zoomAt(f){ const { cw, ch } = this.size(); const w = this.state.world; const ns = this.clampS(w.s * f);
+    const cx = cw/2, cy = ch/2; const mx = (cx - w.tx)/w.s, my = (cy - w.ty)/w.s;
+    this.setState({ world: { s: ns, tx: cx - mx*ns, ty: cy - my*ns } }); }
+  zoomIn = () => this.zoomAt(1.3);
+  zoomOut = () => this.zoomAt(1/1.3);
+  reset = () => this.fit();
+
+  centerOn(mx, my, s){ const { cw, ch } = this.size(); const ns = this.clampS(s); this.setState({ world: { s: ns, tx: cw/2 - mx*ns, ty: ch/2 - my*ns } }); }
+  fitPts(pts){
+    const { cw, ch } = this.size();
+    const xs = pts.map(p => this.X(p.nx)), ys = pts.map(p => this.Y(p.ny));
+    const pad = 230;
+    const minx = Math.min(...xs)-pad, maxx = Math.max(...xs)+pad, miny = Math.min(...ys)-pad, maxy = Math.max(...ys)+pad;
+    const s = this.clampS(Math.min(cw/(maxx-minx), ch/(maxy-miny)));
+    this.centerOn((minx+maxx)/2, (miny+maxy)/2, s);
+  }
+
+  onEra = (e) => this.setState({ era: +e.target.value });
+  prevEra = () => this.setState(s => ({ era: Math.max(0, s.era - 1) }));
+  nextEra = () => this.setState(s => ({ era: Math.min(4, s.era + 1) }));
+
+  toggleTheme = () => this.setState(s => ({ theme: s.theme === "dark" ? "parchment" : "dark" }));
+  toggleOverlay(k){ this.setState(s => ({ overlays: { ...s.overlays, [k]: !s.overlays[k] } })); }
+  togglePlaces = () => this.toggleOverlay("places");
+  toggleRealms = () => this.toggleOverlay("realms");
+  toggleBattles = () => this.toggleOverlay("battles");
+
+  onQuery = (e) => this.setState({ query: e.target.value });
+
+  selectLoc(l){ this.setState({ selected: l.id, selKind: "loc", query: "" }); this.centerOn(this.X(l.nx), this.Y(l.ny), Math.max(this.state.world.s, this.baseScale() * 2.3)); }
+  selectBattle(b){ this.setState({ selected: b.id, selKind: "battle" }); this.centerOn(this.X(b.nx), this.Y(b.ny), Math.max(this.state.world.s, this.baseScale() * 2.3)); }
+  closeDetail = () => this.setState({ selected: null, selKind: null });
+
+  selectJourney(j){
+    if (this._raf) cancelAnimationFrame(this._raf);
+    this.setState({ journeyId: j.id, jprog: 0, selected: null, selKind: null });
+    this.fitPts(j.pts);
+    const dur = 2600, t0 = performance.now();
+    const step = (t) => { const p = Math.min(1, (t - t0) / dur); this.setState({ jprog: p }); if (p < 1) this._raf = requestAnimationFrame(step); };
+    this._raf = requestAnimationFrame(step);
+  }
+  clearJourney = () => { if (this._raf) cancelAnimationFrame(this._raf); this.setState({ journeyId: null }); };
+
+  starPath(cx, cy, r){
+    let d = "";
+    for (let i = 0; i < 8; i++){
+      const ang = -Math.PI/2 + i * Math.PI/4;
+      const rr = i % 2 === 0 ? r : r * 0.44;
+      d += (i ? "L" : "M") + (cx + Math.cos(ang)*rr).toFixed(1) + " " + (cy + Math.sin(ang)*rr).toFixed(1) + " ";
+    }
+    return d + "Z";
+  }
+
+  chipStyle(on){
+    const base = "font-family:'EB Garamond',serif;font-size:14.5px;padding:7px 15px;border-radius:999px;cursor:pointer;border:1px solid var(--panel-bd,#d5c39c);transition:all .15s;";
+    return on
+      ? base + "background:var(--accent,#9c4a2a);color:#fbf4e4;border-color:var(--accent,#9c4a2a);"
+      : base + "background:transparent;color:var(--ink-soft,#6f6046);";
+  }
+
+  renderVals(){
+    const S = this.state, era = S.era, E = this.ERAS[era];
+    const inEra = (r) => era >= r[0] && era <= r[1];
+    const gwUrl = (gw) => "https://tolkiengateway.net/wiki/" + gw;
+    const nameOf = (o) => o.name || (o.id[0].toUpperCase() + o.id.slice(1));
+
+    const places = this.LOCS.filter(l => inEra(l.eras)).map(l => {
+      const hov = S.hoverId === l.id;
+      return { id:l.id, x:this.X(l.nx), y:this.Y(l.ny), fill:l.fill,
+        r: hov ? 12 : 8.5, halo: hov ? 26 : 20,
+        select: () => this.selectLoc(l),
+        hoverIn: () => this.setState({ hoverId: l.id }),
+        hoverOut: () => this.setState({ hoverId: null }) };
+    });
+
+    const battles = this.BATTLES.filter(b => era >= b.era).map(b => {
+      const x = this.X(b.nx), y = this.Y(b.ny);
+      return { id:b.id, x, y, ty: y + 42, name: b.name, star: this.starPath(x, y, 15), select: () => this.selectBattle(b) };
+    });
+
+    const realms = this.REALMS.filter(r => inEra(r.eras)).map(r => ({
+      id:r.id, points: r.pts.map(p => this.X(p[0]) + "," + this.Y(p[1])).join(" "),
+      fill: r.color + "3d", stroke: r.color
+    }));
+
+    const realmList = this.REALMS.filter(r => inEra(r.eras)).map(r => ({
+      name:r.name, color:r.color,
+      choose: () => { const t = this.LOCS.find(l => l.id === r.focus); if (t) this.selectLoc(t); }
+    }));
+
+    // journey
+    const J = S.journeyId ? this.JOURNEYS.find(j => j.id === S.journeyId) : null;
+    let journey = null;
+    if (J){
+      const P = J.pts.map(p => ({ x:this.X(p.nx), y:this.Y(p.ny), l:p.l }));
+      let len = 0; const segs = [0];
+      for (let i=1;i<P.length;i++){ len += Math.hypot(P[i].x-P[i-1].x, P[i].y-P[i-1].y); segs.push(len); }
+      const d = "M " + P.map(p => p.x + " " + p.y).join(" L ");
+      const prog = S.jprog;
+      const stops = P.map((p,i) => ({ x:p.x, y:p.y, ty:p.y - 22, n:i+1, label:p.l,
+        shown: prog >= (P.length<=1 ? 1 : segs[i]/len) - 0.002 ? 1 : 0 }));
+      journey = { d, len: len.toFixed(1), offset: (len*(1-prog)).toFixed(1), color:J.color, stops };
+    }
+
+    // search
+    const q = S.query.trim().toLowerCase();
+    const results = q ? this.LOCS.filter(l => nameOf(l).toLowerCase().includes(q)).slice(0,6).map(l => ({
+      name: nameOf(l), type: l.type,
+      choose: () => this.selectLoc(l),
+      hoverIn: (e) => e.currentTarget.style.background = "var(--panel-2,#ede2c6)",
+      hoverOut: (e) => e.currentTarget.style.background = "transparent"
+    })) : [];
+
+    // detail
+    let detail = null, selPin = false, selX = 0, selY = 0;
+    if (S.selected){
+      if (S.selKind === "battle"){
+        const b = this.BATTLES.find(x => x.id === S.selected);
+        if (b){ detail = { kindLabel:"Battle", name:b.name, desc:b.desc, gwUrl:gwUrl(b.gw), fallen:false, fallenLabel:"" };
+          selPin = true; selX = this.X(b.nx); selY = this.Y(b.ny); }
+      } else {
+        const l = this.LOCS.find(x => x.id === S.selected);
+        if (l){ const fallen = l.eras[1] < era;
+          detail = { kindLabel:l.type, name:nameOf(l), desc:l.desc, gwUrl:gwUrl(l.gw),
+            fallen, fallenLabel:"Fallen by " + this.ERAS[era].name };
+          selPin = true; selX = this.X(l.nx); selY = this.Y(l.ny); }
+      }
+    }
+
+    const journeyBtns = this.JOURNEYS.map(j => {
+      const on = S.journeyId === j.id;
+      return { name:j.name, color:j.color, halo:j.halo, select: () => this.selectJourney(j),
+        style: "display:flex;align-items:center;gap:11px;width:100%;text-align:left;margin-bottom:8px;font-family:'EB Garamond',serif;font-size:15px;padding:9px 13px;border-radius:8px;cursor:pointer;border:1px solid " +
+          (on ? j.color : "var(--panel-bd,#d5c39c)") + ";background:" + (on ? j.halo : "transparent") + ";color:var(--ink,#2c2317);" };
+    });
+
+    return {
+      theme: S.theme,
+      world: `translate(${S.world.tx}px, ${S.world.ty}px) scale(${S.world.s})`,
+      imgFilter: S.theme === "dark" ? "invert(0.9) hue-rotate(175deg) saturate(1.15) brightness(0.92) contrast(1.05)" : "saturate(1.03) contrast(1.02)",
+      themeIcon: S.theme === "dark" ? "\u2600" : "\u263e",
+      eraName: E.name, eraYears: E.years, eraNote: E.note, era: S.era,
+      burnt: era >= 2,
+      overlays: S.overlays,
+      places, battles, realms, realmList,
+      showRealmList: S.overlays.realms,
+      journeyBtns, hasJourney: !!J, journey, clearJourney: this.clearJourney,
+      query: S.query, onQuery: this.onQuery, results, hasResults: results.length > 0,
+      selected: !!detail, detail, selPin, selX, selY, closeDetail: this.closeDetail,
+      onEra: this.onEra, prevEra: this.prevEra, nextEra: this.nextEra,
+      togglePlaces: this.togglePlaces, toggleRealms: this.toggleRealms, toggleBattles: this.toggleBattles,
+      placesChip: this.chipStyle(S.overlays.places), realmsChip: this.chipStyle(S.overlays.realms), battlesChip: this.chipStyle(S.overlays.battles),
+      zoomIn: this.zoomIn, zoomOut: this.zoomOut, reset: this.reset, toggleTheme: this.toggleTheme,
+      mapRef: this.mapRef, onWheel: this.onWheel, onDown: this.onDown, onMove: this.onMove, onUp: this.onUp,
+      toolBtn: "width:40px;height:40px;border-radius:9px;border:1px solid var(--panel-bd,#d5c39c);background:var(--panel,#f5edd8);color:var(--ink,#2c2317);font-size:19px;line-height:1;cursor:pointer;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;"
+    };
+  }
+}
+</script>
+</body>
+</html>
