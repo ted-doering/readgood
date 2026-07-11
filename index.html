@@ -113,6 +113,20 @@
       </sc-if>
     </div>
 
+    <div style="padding:12px 20px 14px 20px; border-bottom:1px solid rgba(255,255,255,0.10);">
+      <button onClick="{{ toggleTrees }}" style="display:flex; align-items:center; gap:9px; width:100%; text-align:left; background:none; border:none; cursor:pointer; font-family:inherit; padding:5px 8px; border-radius:8px;" style-hover="background:rgba(255,255,255,0.06);">
+        <span style="{{ treesChevronStyle }}">&#9656;</span>
+        <span style="flex:1; min-width:0; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; font-weight:600; color:#9cc4a1;">Family Tree</span>
+      </button>
+      <sc-if value="{{ treesOpen }}">
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:9px;">
+          <a href="Family Trees.html" target="_blank" rel="noopener" style="display:flex; align-items:center; gap:10px; text-decoration:none; font-size:13.5px; font-weight:600; color:#eef2e9; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); border-radius:9px; padding:11px 14px;" style-hover="background:rgba(255,255,255,0.14);">
+            <span style="font-size:15px; line-height:1; color:#a9d8ae;">&#9860;</span>Explore the interactive family trees &#8594;
+          </a>
+        </div>
+      </sc-if>
+    </div>
+
     <div style="padding:14px 20px 8px 20px;">
       <div style="display:flex; align-items:center; gap:9px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14); border-radius:9px; padding:0 12px;">
         <span style="font-size:14px; color:#7fae86; line-height:1;">&#9906;</span>
@@ -324,7 +338,7 @@ class Component extends DCLogic {
     data: [], parts: [], currentId: null,
     read: [], notes: {}, answers: {}, trackers: {}, query: '',
     isMobile: false, drawerOpen: false,
-    collapsed: {}, collapsedInit: false, refOpen: false,
+    collapsed: {}, collapsedInit: false, refOpen: false, treesOpen: false,
     user: null, syncState: 'idle', syncDetail: '',
     authError: '', authBusy: false,
   };
@@ -412,6 +426,7 @@ class Component extends DCLogic {
     this.setState((s) => ({ collapsed: { ...s.collapsed, [pid]: !s.collapsed[pid] } }));
   }
   toggleRef = () => this.setState((s) => ({ refOpen: !s.refOpen }));
+  toggleTrees = () => this.setState((s) => ({ treesOpen: !s.treesOpen }));
 
   /* ---------- local storage ---------- */
   readLocal() {
@@ -792,6 +807,9 @@ class Component extends DCLogic {
 
       toggleRef: this.toggleRef,
       refOpen: this.state.refOpen,
+      toggleTrees: this.toggleTrees,
+      treesOpen: this.state.treesOpen,
+      treesChevronStyle: 'flex:0 0 auto; display:inline-block; font-size:9px; line-height:1; color:#9cc4a1; transition:transform 0.2s ease; transform:rotate(' + (this.state.treesOpen ? '90deg' : '0deg') + ');',
       refChevronStyle: 'flex:0 0 auto; display:inline-block; font-size:9px; line-height:1; color:#9cc4a1; transition:transform 0.2s ease; transform:rotate(' + (this.state.refOpen ? '90deg' : '0deg') + ');',
 
       openTrackers: this.openTrackers,
